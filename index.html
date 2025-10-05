@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Waste Separator — 3D Model</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="container"></div>
+
+  <div id="ui">
+    <h1>AI Waste Separator — Model</h1>
+    <p class="hint">Rotate: drag, Zoom: mouse wheel, Pan: right-drag / two-finger drag</p>
+    <div id="info">
+      <strong>Selected:</strong> <span id="selected">None</span>
+      <div id="desc">Click any part to highlight and see name here.</div>
+    </div>
+    <div id="legend">
+      <h3>Parts & Colors</h3>
+      <ul>
+        <li><span class="swatch" style="background:#8AB6D6"></span> Main Bin Body</li>
+        <li><span class="swatch" style="background:#FFD8A8"></span> Wet Bin</li>
+        <li><span class="swatch" style="background:#C7E6A8"></span> Dry Bin</li>
+        <li><span class="swatch" style="background:#B8D0FF"></span> Recyclable Bin</li>
+        <li><span class="swatch" style="background:#7D7D7D"></span> Conveyor</li>
+        <li><span class="swatch" style="background:#FF6B6B"></span> Servo Gate</li>
+        <li><span class="swatch" style="background:#333"></span> Camera Sensor</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- script is a module -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
