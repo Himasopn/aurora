@@ -11,12 +11,19 @@
             box-sizing: border-box;
         }
 
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(-45deg, #0a1929, #1a237e, #0d47a1, #01579b);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             overflow: hidden;
             height: 100vh;
-            background: #0a1929; /* default background */
-            transition: background 1s ease;
         }
 
         #container {
@@ -34,12 +41,13 @@
             padding: 12px 20px;
             border-radius: 30px;
             color: white;
-            z-index: 100;
+            z-index: 500; /* Increased z-index */
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             gap: 12px;
             align-items: center;
+            pointer-events: all; /* Ensure it can be clicked */
         }
 
         .control-btn {
@@ -72,7 +80,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none; /* Labels won't block clicks by default */
             z-index: 10;
         }
 
@@ -84,7 +92,7 @@
             border-radius: 5px;
             font-size: 9px;
             font-weight: 500;
-            pointer-events: all;
+            pointer-events: all; /* Labels clickable */
             transform: translate(-50%, -50%);
             white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -108,7 +116,7 @@
             background: rgba(255, 255, 255, 0.98);
             padding: 30px;
             border-radius: 20px;
-            z-index: 200;
+            z-index: 600; /* Above everything */
             backdrop-filter: blur(20px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             min-width: 350px;
@@ -207,28 +215,7 @@
             font-weight: 500;
             text-align: center;
             z-index: 50;
-        }
-
-        /* Background button style */
-        #bgButton {
-            position: absolute;
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 22px;
-            transition: all 0.3s;
-            z-index: 100;
-        }
-
-        #bgButton:hover {
-            transform: translateY(-50%) scale(1.1);
-            background: rgba(255,255,255,0.25);
+            pointer-events: none;
         }
 
         @media (max-width: 768px) {
@@ -259,116 +246,23 @@
         <button id="backBtn" onclick="closeDetail()">Back to Model</button>
     </div>
 
-    <!-- Background Button -->
-    <button id="bgButton" title="Change Background">🌸</button>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Background animation logic
-        const backgrounds = [
-            'linear-gradient(120deg, #89f7fe, #66a6ff)',
-            'linear-gradient(135deg, #fbc2eb, #a6c1ee)',
-            'linear-gradient(120deg, #a1c4fd, #c2e9fb)',
-            'linear-gradient(135deg, #ffecd2, #fcb69f)',
-            'linear-gradient(120deg, #d4fc79, #96e6a1)',
-            'linear-gradient(135deg, #f6d365, #fda085)'
-        ];
-        let currentBg = 0;
-        const bgButton = document.getElementById('bgButton');
-
-        bgButton.addEventListener('click', () => {
-            currentBg = (currentBg + 1) % backgrounds.length;
-            document.body.style.background = backgrounds[currentBg];
-        });
-
-        // Three.js 3D model and interaction code
         let scene, camera, renderer, model;
         let autoRotate = true;
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
 
         const componentDetails = {
-            'Camera': {
-                category: 'Detection System',
-                description: 'High-resolution camera module captures images of waste items for AI classification. Positioned above input slot for optimal viewing angle.',
-                specs: {
-                    'Resolution': '5MP',
-                    'Type': 'ESP32-CAM',
-                    'Function': 'Image Capture'
-                }
-            },
-            'Input Slot': {
-                category: 'User Interface',
-                description: 'Platform where users place waste items. Smooth surface ensures clear camera view and easy item placement.',
-                specs: {
-                    'Material': 'Plastic Tray',
-                    'Size': '20cm × 15cm',
-                    'Function': 'Waste Input'
-                }
-            },
-            'Sensor': {
-                category: 'Detection System',
-                description: 'Ultrasonic sensor detects object presence and triggers the camera system automatically when waste is placed.',
-                specs: {
-                    'Type': 'HC-SR04',
-                    'Range': '2-400cm',
-                    'Function': 'Object Detection'
-                }
-            },
-            'LEDs': {
-                category: 'Feedback System',
-                description: 'Three color-coded LED indicators show which bin the waste was sorted into - Green (Wet), Blue (Dry), Orange (Recyclable).',
-                specs: {
-                    'Colors': '3 (RGB)',
-                    'Voltage': '5V',
-                    'Function': 'Visual Feedback'
-                }
-            },
-            'Servo': {
-                category: 'Mechanical System',
-                description: 'Precision servo motor controls sorting gates, directing waste to correct compartment based on AI classification.',
-                specs: {
-                    'Type': 'SG90',
-                    'Rotation': '180°',
-                    'Function': 'Gate Control'
-                }
-            },
-            'Wet Bin': {
-                category: 'Storage',
-                description: 'Compartment for organic waste including food scraps, peels, and biodegradable materials. Color-coded green.',
-                specs: {
-                    'Capacity': '5 Liters',
-                    'Type': 'Organic Waste',
-                    'Color': 'Green'
-                }
-            },
-            'Dry Bin': {
-                category: 'Storage',
-                description: 'Compartment for non-biodegradable dry waste like paper, cardboard, and packaging materials. Color-coded blue.',
-                specs: {
-                    'Capacity': '5 Liters',
-                    'Type': 'Dry Waste',
-                    'Color': 'Blue'
-                }
-            },
-            'Recycle Bin': {
-                category: 'Storage',
-                description: 'Compartment for recyclable materials including plastic bottles, metal cans, and glass. Color-coded orange.',
-                specs: {
-                    'Capacity': '5 Liters',
-                    'Type': 'Recyclable',
-                    'Color': 'Orange'
-                }
-            },
-            'Arduino': {
-                category: 'Control System',
-                description: 'Main microcontroller that processes AI predictions and controls all electronic components including servos, LEDs, and sensors.',
-                specs: {
-                    'Type': 'Arduino Uno',
-                    'Voltage': '5V',
-                    'Function': 'System Control'
-                }
-            }
+            'Camera': { category: 'Detection System', description: 'High-resolution camera module captures images of waste items for AI classification.', specs: { 'Resolution': '5MP', 'Type': 'ESP32-CAM', 'Function': 'Image Capture' } },
+            'Input Slot': { category: 'User Interface', description: 'Platform where users place waste items.', specs: { 'Material': 'Plastic Tray', 'Size': '20cm × 15cm', 'Function': 'Waste Input' } },
+            'Sensor': { category: 'Detection System', description: 'Ultrasonic sensor detects object presence.', specs: { 'Type': 'HC-SR04', 'Range': '2-400cm', 'Function': 'Object Detection' } },
+            'LEDs': { category: 'Feedback System', description: 'Three color-coded LED indicators show sorting.', specs: { 'Colors': '3 (RGB)', 'Voltage': '5V', 'Function': 'Visual Feedback' } },
+            'Servo': { category: 'Mechanical System', description: 'Servo motor controls sorting gates.', specs: { 'Type': 'SG90', 'Rotation': '180°', 'Function': 'Gate Control' } },
+            'Wet Bin': { category: 'Storage', description: 'Compartment for organic waste.', specs: { 'Capacity': '5 Liters', 'Type': 'Organic Waste', 'Color': 'Green' } },
+            'Dry Bin': { category: 'Storage', description: 'Compartment for dry waste.', specs: { 'Capacity': '5 Liters', 'Type': 'Dry Waste', 'Color': 'Blue' } },
+            'Recycle Bin': { category: 'Storage', description: 'Compartment for recyclable materials.', specs: { 'Capacity': '5 Liters', 'Type': 'Recyclable', 'Color': 'Orange' } },
+            'Arduino': { category: 'Control System', description: 'Main microcontroller controlling all electronics.', specs: { 'Type': 'Arduino Uno', 'Voltage': '5V', 'Function': 'System Control' } }
         };
 
         const labels = [
@@ -394,9 +288,6 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
             document.getElementById('container').appendChild(renderer.domElement);
 
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -404,75 +295,19 @@
 
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
             directionalLight.position.set(10, 15, 8);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            directionalLight.shadow.camera.near = 0.5;
-            directionalLight.shadow.camera.far = 50;
             scene.add(directionalLight);
-
-            const pointLight = new THREE.PointLight(0xffffff, 0.8);
-            pointLight.position.set(-8, 8, -8);
-            scene.add(pointLight);
-
-            const rimLight = new THREE.DirectionalLight(0x4a90e2, 0.5);
-            rimLight.position.set(-5, 3, -10);
-            scene.add(rimLight);
 
             createModel();
 
+            // Event listeners
             renderer.domElement.addEventListener('mousedown', onMouseDown);
             renderer.domElement.addEventListener('mousemove', onMouseMove);
             renderer.domElement.addEventListener('mouseup', onMouseUp);
             renderer.domElement.addEventListener('wheel', onWheel);
-            
-            let initialPinchDistance = null;
-            let initialCameraDistance = null;
 
-            renderer.domElement.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 2) {
-                    autoRotate = false;
-                    const dx = e.touches[0].clientX - e.touches[1].clientX;
-                    const dy = e.touches[0].clientY - e.touches[1].clientY;
-                    initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
-                    initialCameraDistance = camera.position.length();
-                    e.preventDefault();
-                } else if (e.touches.length === 1) {
-                    onTouchStart(e);
-                }
-            });
-
-            renderer.domElement.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 2 && initialPinchDistance && initialCameraDistance) {
-                    const dx = e.touches[0].clientX - e.touches[1].clientX;
-                    const dy = e.touches[0].clientY - e.touches[1].clientY;
-                    const currentDistance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    const scale = initialPinchDistance / currentDistance;
-                    const newDistance = initialCameraDistance * scale;
-                    
-                    const minDist = 6;
-                    const maxDist = 18;
-                    const clampedDistance = Math.max(minDist, Math.min(maxDist, newDistance));
-                    
-                    camera.position.setLength(clampedDistance);
-                    camera.lookAt(0, 2, 0);
-                    
-                    e.preventDefault();
-                } else if (e.touches.length === 1) {
-                    onTouchMove(e);
-                }
-            });
-
-            renderer.domElement.addEventListener('touchend', (e) => {
-                if (e.touches.length < 2) {
-                    initialPinchDistance = null;
-                    initialCameraDistance = null;
-                }
-                if (e.touches.length === 0) {
-                    onMouseUp();
-                }
-            });
+            renderer.domElement.addEventListener('touchstart', onTouchStart);
+            renderer.domElement.addEventListener('touchmove', onTouchMove);
+            renderer.domElement.addEventListener('touchend', onMouseUp);
 
             window.addEventListener('resize', onWindowResize);
 
@@ -483,139 +318,75 @@
         function createModel() {
             model = new THREE.Group();
 
-            const baseGeometry = new THREE.BoxGeometry(7, 0.3, 4);
-            const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
-            const base = new THREE.Mesh(baseGeometry, baseMaterial);
-            base.castShadow = true;
-            base.receiveShadow = true;
-            model.add(base);
-
-            // Add simple boxes for bins/components
-            const binGeometry = new THREE.BoxGeometry(2, 1, 2);
-            const wetBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0x28a745 }));
-            wetBin.position.set(-2, 0.5, 0);
-            wetBin.castShadow = true;
-            model.add(wetBin);
-
-            const dryBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0x007bff }));
-            dryBin.position.set(0, 0.5, 0);
-            dryBin.castShadow = true;
-            model.add(dryBin);
-
-            const recycleBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0xffa500 }));
-            recycleBin.position.set(2, 0.5, 0);
-            recycleBin.castShadow = true;
-            model.add(recycleBin);
-
-            // Camera placeholder
-            const camGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            const camMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-            const cameraObj = new THREE.Mesh(camGeo, camMat);
-            cameraObj.position.set(0, 4.5, 0);
-            model.add(cameraObj);
+            const geometry = new THREE.BoxGeometry(1,1,1);
+            const material = new THREE.MeshStandardMaterial({ color: 0x777 });
+            const cube = new THREE.Mesh(geometry, material);
+            model.add(cube);
 
             scene.add(model);
         }
 
-        function updateLabels() {
-            const labelsContainer = document.getElementById('labels');
-            labelsContainer.innerHTML = '';
-            labels.forEach(label => {
-                const div = document.createElement('div');
-                div.className = 'label';
-                div.textContent = label.name;
-                labelsContainer.appendChild(div);
-
-                div.addEventListener('click', () => showDetail(label.name));
-
-                function updatePosition() {
-                    const vector = new THREE.Vector3(label.position.x, label.position.y, label.position.z);
-                    vector.project(camera);
-
-                    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                    const y = ( - vector.y * 0.5 + 0.5) * window.innerHeight;
-
-                    div.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
-                }
-
-                updatePosition();
-                window.addEventListener('resize', updatePosition);
-                renderer.domElement.addEventListener('mousemove', updatePosition);
-            });
-        }
-
         function showDetail(name) {
             const detail = componentDetails[name];
+            if (!detail) return;
+
+            autoRotate = false;
+
             document.getElementById('detailTitle').textContent = name;
             document.getElementById('detailCategory').textContent = detail.category;
             document.getElementById('detailDescription').textContent = detail.description;
 
-            const specsDiv = document.getElementById('detailSpecs');
-            specsDiv.innerHTML = '';
-            for (const [key, value] of Object.entries(detail.specs)) {
-                const item = document.createElement('div');
-                item.className = 'spec-item';
-                item.innerHTML = `<span class="spec-label">${key}</span><span class="spec-value">${value}</span>`;
-                specsDiv.appendChild(item);
-            }
+            const specsHTML = Object.entries(detail.specs)
+                .map(([key, value]) => `<div class="spec-item"><span class="spec-label">${key}</span><span class="spec-value">${value}</span></div>`).join('');
 
+            document.getElementById('detailSpecs').innerHTML = specsHTML;
             document.getElementById('detailPanel').classList.add('show');
         }
 
         function closeDetail() {
             document.getElementById('detailPanel').classList.remove('show');
+            autoRotate = true;
         }
 
-        function resetView() {
-            camera.position.set(9, 6, 9);
-            camera.lookAt(0, 2, 0);
+        function updateLabels() {
+            const labelsContainer = document.getElementById('labels');
+            labelsContainer.innerHTML = '';
+
+            labels.forEach(labelData => {
+                const vector = new THREE.Vector3(labelData.position.x, labelData.position.y, labelData.position.z);
+                vector.applyMatrix4(model.matrixWorld);
+                vector.project(camera);
+
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+
+                if (vector.z < 1) {
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    label.textContent = labelData.name;
+                    label.style.left = x + 'px';
+                    label.style.top = y + 'px';
+                    label.onclick = () => showDetail(labelData.name);
+                    labelsContainer.appendChild(label);
+                }
+            });
         }
 
-        function toggleRotation() {
-            autoRotate = !autoRotate;
-        }
-
-        let mouseDown = false;
-        let startX = 0, startY = 0;
-
-        function onMouseDown(e) {
-            mouseDown = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            autoRotate = false;
-        }
-
-        function onMouseMove(e) {
-            if (!mouseDown) return;
-            const deltaX = (e.clientX - startX) * 0.005;
-            const deltaY = (e.clientY - startY) * 0.005;
-            model.rotation.y += deltaX;
-            model.rotation.x += deltaY;
-            startX = e.clientX;
-            startY = e.clientY;
-        }
-
-        function onMouseUp() { mouseDown = false; }
-
-        function onWheel(e) {
-            const delta = e.deltaY * 0.01;
-            const newZ = camera.position.length() + delta;
-            const minDist = 6, maxDist = 18;
-            camera.position.setLength(Math.max(minDist, Math.min(maxDist, newZ)));
-            camera.lookAt(0, 2, 0);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            updateLabels();
-        }
+        function onMouseDown(e) { isDragging = true; previousMousePosition = { x: e.clientX, y: e.clientY }; }
+        function onMouseMove(e) { if(isDragging){ autoRotate=false; const dx=e.clientX-previousMousePosition.x; const dy=e.clientY-previousMousePosition.y; model.rotation.y+=dx*0.01; model.rotation.x+=dy*0.01; previousMousePosition={x:e.clientX,y:e.clientY}; } }
+        function onMouseUp(){ isDragging=false; }
+        function onTouchStart(e){ if(e.touches.length===1){ previousMousePosition={x:e.touches[0].clientX,y:e.touches[0].clientY}; } }
+        function onTouchMove(e){ if(e.touches.length===1){ autoRotate=false; const dx=e.touches[0].clientX-previousMousePosition.x; const dy=e.touches[0].clientY-previousMousePosition.y; model.rotation.y+=dx*0.01; model.rotation.x+=dy*0.01; previousMousePosition={x:e.touches[0].clientX,y:e.touches[0].clientY}; } }
+        function onWheel(e){ e.preventDefault(); const delta=e.deltaY*0.015; const newDist=camera.position.length()+delta; camera.position.setLength(Math.max(6,Math.min(18,newDist))); camera.lookAt(0,2,0); }
+        function onWindowResize(){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); }
+        function resetView(){ camera.position.set(9,6,9); camera.lookAt(0,2,0); model.rotation.set(0,0,0); autoRotate=true; closeDetail(); }
+        function toggleRotation(){ autoRotate=!autoRotate; }
 
         function animate() {
             requestAnimationFrame(animate);
-            if (autoRotate) model.rotation.y += 0.005;
-            renderer.render(scene, camera);
+            if(autoRotate) model.rotation.y+=0.005;
+            updateLabels();
+            renderer.render(scene,camera);
         }
 
         init();
