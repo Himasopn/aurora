@@ -91,7 +91,7 @@
             border-radius: 5px;
             font-size: 9px;
             font-weight: 500;
-            pointer-events: all;
+            pointer-events: auto;
             transform: translate(-50%, -50%);
             white-space: nowrap;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -99,12 +99,14 @@
             cursor: pointer;
             transition: all 0.2s;
             letter-spacing: 0;
+            user-select: none;
         }
 
         .label:hover {
             background: white;
             transform: translate(-50%, -50%) scale(1.05);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
         }
 
         #detailPanel {
@@ -388,6 +390,7 @@
             renderer.domElement.addEventListener('mousedown', onMouseDown);
             renderer.domElement.addEventListener('mousemove', onMouseMove);
             renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('mouseleave', onMouseUp);
             renderer.domElement.addEventListener('wheel', onWheel);
             
             // Pinch zoom for touch devices
@@ -676,13 +679,27 @@
                     label.textContent = labelData.name;
                     label.style.left = x + 'px';
                     label.style.top = y + 'px';
-                    label.onclick = () => showDetail(labelData.name);
+                    
+                    // Use both click and mousedown for better desktop compatibility
+                    label.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDetail(labelData.name);
+                    });
+                    
+                    label.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                    });
+                    
                     labelsContainer.appendChild(label);
                 }
             });
         }
 
         function onMouseDown(e) {
+            // Check if clicking on a label
+            if (e.target.classList.contains('label')) {
+                return;
+            }
             isDragging = true;
             previousMousePosition = { x: e.clientX, y: e.clientY };
         }
@@ -736,7 +753,6 @@
             
             const currentDistance = camera.position.length();
             const newDistance = currentDistance + delta;
-            
             const minDist = 6;
             const maxDist = 18;
             const clampedDistance = Math.max(minDist, Math.min(maxDist, newDistance));
