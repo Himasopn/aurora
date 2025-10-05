@@ -17,72 +17,13 @@
             100% { background-position: 0% 50%; }
         }
 
-        @keyframes gradientPulse {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes gradientWave {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 200% 200%; }
-        }
-
-        @keyframes gradientSpin {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
-
-        @keyframes gradientBreath {
-            0%, 100% { background-position: 20% 50%; }
-            50% { background-position: 80% 50%; }
-        }
-
-        @keyframes gradientFlow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            transition: background 0.5s ease;
-        }
-
-        body.theme-0 {
             background: linear-gradient(-45deg, #0a1929, #1a237e, #0d47a1, #01579b);
             background-size: 400% 400%;
             animation: gradientShift 15s ease infinite;
-        }
-
-        body.theme-1 {
-            background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #533483);
-            background-size: 400% 400%;
-            animation: gradientPulse 12s ease-in-out infinite;
-        }
-
-        body.theme-2 {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #667eea 100%);
-            background-size: 200% 200%;
-            animation: gradientWave 20s linear infinite;
-        }
-
-        body.theme-3 {
-            background: linear-gradient(-45deg, #2c3e50, #34495e, #2c3e50, #34495e);
-            background-size: 400% 400%;
-            animation: gradientBreath 10s ease-in-out infinite;
-        }
-
-        body.theme-4 {
-            background: linear-gradient(to right, #ff6b6b, #ee5a6f, #c44569, #786fa6, #4b6cb7, #182848);
-            background-size: 200% 100%;
-            animation: gradientFlow 18s linear infinite;
-        }
-
-        body.theme-5 {
-            background: linear-gradient(45deg, #134e5e, #71b280, #134e5e, #71b280);
-            background-size: 400% 400%;
-            animation: gradientSpin 16s ease infinite;
+            overflow: hidden;
+            height: 100vh;
         }
 
         #container {
@@ -106,36 +47,6 @@
             display: flex;
             gap: 12px;
             align-items: center;
-        }
-
-        #bgThemeBtn {
-            position: fixed;
-            right: 30px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
-
-        #bgThemeBtn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        #bgThemeBtn:active {
-            transform: translateY(-50%) scale(0.95);
         }
 
         .control-btn {
@@ -310,13 +221,6 @@
                 min-width: 90%;
                 padding: 25px;
             }
-            
-            #bgThemeBtn {
-                right: 20px;
-                width: 45px;
-                height: 45px;
-                font-size: 22px;
-            }
         }
     </style>
 </head>
@@ -324,8 +228,6 @@
     <div id="container"></div>
     
     <div class="instruction">Drag to rotate • Scroll to zoom • Click on labels</div>
-
-    <button id="bgThemeBtn" onclick="changeTheme()" title="Change Background">🌸</button>
 
     <div id="controls">
         <button class="control-btn" onclick="resetView()" title="Reset View">↻</button>
@@ -348,14 +250,6 @@
         let autoRotate = true;
         let isDragging = false;
         let previousMousePosition = { x: 0, y: 0 };
-        let currentTheme = 0;
-        const totalThemes = 6;
-
-        function changeTheme() {
-            document.body.classList.remove(`theme-${currentTheme}`);
-            currentTheme = (currentTheme + 1) % totalThemes;
-            document.body.classList.add(`theme-${currentTheme}`);
-        }
 
         const componentDetails = {
             'Camera': {
@@ -454,8 +348,6 @@
         ];
 
         function init() {
-            document.body.classList.add('theme-0');
-            
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a1929);
 
@@ -498,6 +390,7 @@
             renderer.domElement.addEventListener('mouseup', onMouseUp);
             renderer.domElement.addEventListener('wheel', onWheel);
             
+            // Pinch zoom for touch devices
             let initialPinchDistance = null;
             let initialCameraDistance = null;
 
