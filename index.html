@@ -11,19 +11,12 @@
             box-sizing: border-box;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(-45deg, #0a1929, #1a237e, #0d47a1, #01579b);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
             overflow: hidden;
             height: 100vh;
+            background: #0a1929; /* default background */
+            transition: background 1s ease;
         }
 
         #container {
@@ -216,6 +209,28 @@
             z-index: 50;
         }
 
+        /* Background button style */
+        #bgButton {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 22px;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        #bgButton:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: rgba(255,255,255,0.25);
+        }
+
         @media (max-width: 768px) {
             #detailPanel {
                 min-width: 90%;
@@ -244,8 +259,29 @@
         <button id="backBtn" onclick="closeDetail()">Back to Model</button>
     </div>
 
+    <!-- Background Button -->
+    <button id="bgButton" title="Change Background">🌸</button>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Background animation logic
+        const backgrounds = [
+            'linear-gradient(120deg, #89f7fe, #66a6ff)',
+            'linear-gradient(135deg, #fbc2eb, #a6c1ee)',
+            'linear-gradient(120deg, #a1c4fd, #c2e9fb)',
+            'linear-gradient(135deg, #ffecd2, #fcb69f)',
+            'linear-gradient(120deg, #d4fc79, #96e6a1)',
+            'linear-gradient(135deg, #f6d365, #fda085)'
+        ];
+        let currentBg = 0;
+        const bgButton = document.getElementById('bgButton');
+
+        bgButton.addEventListener('click', () => {
+            currentBg = (currentBg + 1) % backgrounds.length;
+            document.body.style.background = backgrounds[currentBg];
+        });
+
+        // Three.js 3D model and interaction code
         let scene, camera, renderer, model;
         let autoRotate = true;
         let isDragging = false;
@@ -390,7 +426,6 @@
             renderer.domElement.addEventListener('mouseup', onMouseUp);
             renderer.domElement.addEventListener('wheel', onWheel);
             
-            // Pinch zoom for touch devices
             let initialPinchDistance = null;
             let initialCameraDistance = null;
 
@@ -449,299 +484,124 @@
             model = new THREE.Group();
 
             const baseGeometry = new THREE.BoxGeometry(7, 0.3, 4);
-            const baseMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x424242,
-                metalness: 0.6,
-                roughness: 0.4
-            });
+            const baseMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
             const base = new THREE.Mesh(baseGeometry, baseMaterial);
-            base.position.y = -0.15;
             base.castShadow = true;
             base.receiveShadow = true;
             model.add(base);
 
-            const frameGeometry = new THREE.BoxGeometry(6, 3, 3.5);
-            const frameMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x757575, 
-                transparent: true, 
-                opacity: 0.15,
-                metalness: 0.8,
-                roughness: 0.2
-            });
-            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
-            frame.position.y = 1.5;
-            model.add(frame);
-
-            const binWidth = 1.8;
-            const binHeight = 1.5;
-            const binDepth = 2.5;
-
-            const wetBinGeometry = new THREE.BoxGeometry(binWidth, binHeight, binDepth);
-            const wetBinMaterial = new THREE.MeshStandardMaterial({ color: 0x4CAF50 });
-            const wetBin = new THREE.Mesh(wetBinGeometry, wetBinMaterial);
-            wetBin.position.set(-2, 0.75, 0);
+            // Add simple boxes for bins/components
+            const binGeometry = new THREE.BoxGeometry(2, 1, 2);
+            const wetBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0x28a745 }));
+            wetBin.position.set(-2, 0.5, 0);
             wetBin.castShadow = true;
             model.add(wetBin);
 
-            const dryBinGeometry = new THREE.BoxGeometry(binWidth, binHeight, binDepth);
-            const dryBinMaterial = new THREE.MeshStandardMaterial({ color: 0x2196F3 });
-            const dryBin = new THREE.Mesh(dryBinGeometry, dryBinMaterial);
-            dryBin.position.set(0, 0.75, 0);
+            const dryBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0x007bff }));
+            dryBin.position.set(0, 0.5, 0);
             dryBin.castShadow = true;
             model.add(dryBin);
 
-            const recycleBinGeometry = new THREE.BoxGeometry(binWidth, binHeight, binDepth);
-            const recycleBinMaterial = new THREE.MeshStandardMaterial({ color: 0xFF9800 });
-            const recycleBin = new THREE.Mesh(recycleBinGeometry, recycleBinMaterial);
-            recycleBin.position.set(2, 0.75, 0);
+            const recycleBin = new THREE.Mesh(binGeometry, new THREE.MeshStandardMaterial({ color: 0xffa500 }));
+            recycleBin.position.set(2, 0.5, 0);
             recycleBin.castShadow = true;
             model.add(recycleBin);
 
-            const inputGeometry = new THREE.BoxGeometry(2, 0.2, 1.5);
-            const inputMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x9e9e9e,
-                metalness: 0.5,
-                roughness: 0.3
-            });
-            const inputSlot = new THREE.Mesh(inputGeometry, inputMaterial);
-            inputSlot.position.set(0, 3.5, 0);
-            inputSlot.castShadow = true;
-            inputSlot.receiveShadow = true;
-            model.add(inputSlot);
-
-            const cameraGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.5, 16);
-            const cameraMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1a1a1a,
-                metalness: 0.7,
-                roughness: 0.3
-            });
-            const cameraModule = new THREE.Mesh(cameraGeometry, cameraMaterial);
-            cameraModule.position.set(0, 4.5, 0);
-            cameraModule.rotation.x = Math.PI / 2;
-            cameraModule.castShadow = true;
-            model.add(cameraModule);
-
-            const lensGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16);
-            const lensMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x1976D2, 
-                emissive: 0x1976D2, 
-                emissiveIntensity: 0.5 
-            });
-            const lens = new THREE.Mesh(lensGeometry, lensMaterial);
-            lens.position.set(0, 4.5, -0.3);
-            lens.rotation.x = Math.PI / 2;
-            model.add(lens);
-
-            const sensorGeometry = new THREE.BoxGeometry(0.6, 0.3, 0.2);
-            const sensorMaterial = new THREE.MeshStandardMaterial({ color: 0x1565C0 });
-            const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
-            sensor.position.set(0, 3, 2);
-            model.add(sensor);
-
-            const eyeGeometry = new THREE.CylinderGeometry(0.08, 0.08, 0.15, 16);
-            const eyeMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0xFFEB3B, 
-                emissive: 0xFFEB3B, 
-                emissiveIntensity: 0.7 
-            });
-            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            leftEye.position.set(-0.15, 3, 2.1);
-            leftEye.rotation.x = Math.PI / 2;
-            model.add(leftEye);
-
-            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            rightEye.position.set(0.15, 3, 2.1);
-            rightEye.rotation.x = Math.PI / 2;
-            model.add(rightEye);
-
-            const ledGeometry = new THREE.SphereGeometry(0.15, 16, 16);
-            
-            const greenLed = new THREE.Mesh(ledGeometry, new THREE.MeshStandardMaterial({ 
-                color: 0x4CAF50, 
-                emissive: 0x4CAF50, 
-                emissiveIntensity: 0.8 
-            }));
-            greenLed.position.set(-2.5, 2, 1.8);
-            model.add(greenLed);
-
-            const blueLed = new THREE.Mesh(ledGeometry, new THREE.MeshStandardMaterial({ 
-                color: 0x2196F3, 
-                emissive: 0x2196F3, 
-                emissiveIntensity: 0.8 
-            }));
-            blueLed.position.set(-2.5, 2.5, 1.8);
-            model.add(blueLed);
-
-            const orangeLed = new THREE.Mesh(ledGeometry, new THREE.MeshStandardMaterial({ 
-                color: 0xFF9800, 
-                emissive: 0xFF9800, 
-                emissiveIntensity: 0.8 
-            }));
-            orangeLed.position.set(-2.5, 3, 1.8);
-            model.add(orangeLed);
-
-            const servoBodyGeometry = new THREE.BoxGeometry(0.6, 0.4, 0.8);
-            const servoMaterial = new THREE.MeshStandardMaterial({ color: 0x424242 });
-            const servoBody = new THREE.Mesh(servoBodyGeometry, servoMaterial);
-            servoBody.position.set(0, 2, -2);
-            model.add(servoBody);
-
-            const servoArmGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1, 8);
-            const servoArm = new THREE.Mesh(servoArmGeometry, servoMaterial);
-            servoArm.position.set(0, 2.3, -2);
-            servoArm.rotation.z = Math.PI / 4;
-            model.add(servoArm);
-
-            const arduinoGeometry = new THREE.BoxGeometry(1, 0.1, 0.7);
-            const arduinoMaterial = new THREE.MeshStandardMaterial({ color: 0x00897B });
-            const arduino = new THREE.Mesh(arduinoGeometry, arduinoMaterial);
-            arduino.position.set(2.5, 1, -1.5);
-            model.add(arduino);
-
-            const chipGeometry = new THREE.BoxGeometry(0.4, 0.15, 0.4);
-            const chipMaterial = new THREE.MeshStandardMaterial({ color: 0x212121 });
-            const chip = new THREE.Mesh(chipGeometry, chipMaterial);
-            chip.position.set(2.5, 1.1, -1.5);
-            model.add(chip);
-
-            const pillarGeometry = new THREE.CylinderGeometry(0.1, 0.1, 3, 8);
-            const pillarMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x424242,
-                metalness: 0.7,
-                roughness: 0.3
-            });
-            
-            const positions = [
-                [-3, 1.5, 1.5], [-3, 1.5, -1.5],
-                [3, 1.5, 1.5], [3, 1.5, -1.5]
-            ];
-
-            positions.forEach(pos => {
-                const pillar = new THREE.Mesh(pillarGeometry, pillarMaterial);
-                pillar.position.set(...pos);
-                pillar.castShadow = true;
-                model.add(pillar);
-            });
+            // Camera placeholder
+            const camGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+            const camMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+            const cameraObj = new THREE.Mesh(camGeo, camMat);
+            cameraObj.position.set(0, 4.5, 0);
+            model.add(cameraObj);
 
             scene.add(model);
-        }
-
-        function showDetail(componentName) {
-            const detail = componentDetails[componentName];
-            if (!detail) return;
-
-            autoRotate = false;
-            
-            document.getElementById('detailTitle').textContent = componentName;
-            document.getElementById('detailCategory').textContent = detail.category;
-            document.getElementById('detailDescription').textContent = detail.description;
-            
-            const specsHTML = Object.entries(detail.specs)
-                .map(([key, value]) => `
-                    <div class="spec-item">
-                        <span class="spec-label">${key}</span>
-                        <span class="spec-value">${value}</span>
-                    </div>
-                `).join('');
-            
-            document.getElementById('detailSpecs').innerHTML = specsHTML;
-            document.getElementById('detailPanel').classList.add('show');
-        }
-
-        function closeDetail() {
-            document.getElementById('detailPanel').classList.remove('show');
-            autoRotate = true;
         }
 
         function updateLabels() {
             const labelsContainer = document.getElementById('labels');
             labelsContainer.innerHTML = '';
+            labels.forEach(label => {
+                const div = document.createElement('div');
+                div.className = 'label';
+                div.textContent = label.name;
+                labelsContainer.appendChild(div);
 
-            labels.forEach(labelData => {
-                const vector = new THREE.Vector3(
-                    labelData.position.x,
-                    labelData.position.y,
-                    labelData.position.z
-                );
-                
-                vector.applyMatrix4(model.matrixWorld);
-                vector.project(camera);
+                div.addEventListener('click', () => showDetail(label.name));
 
-                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-                const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
+                function updatePosition() {
+                    const vector = new THREE.Vector3(label.position.x, label.position.y, label.position.z);
+                    vector.project(camera);
 
-                if (vector.z < 1) {
-                    const label = document.createElement('div');
-                    label.className = 'label';
-                    label.textContent = labelData.name;
-                    label.style.left = x + 'px';
-                    label.style.top = y + 'px';
-                    label.onclick = () => showDetail(labelData.name);
-                    labelsContainer.appendChild(label);
+                    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = ( - vector.y * 0.5 + 0.5) * window.innerHeight;
+
+                    div.style.transform = `translate(-50%, -50%) translate(${x}px,${y}px)`;
                 }
+
+                updatePosition();
+                window.addEventListener('resize', updatePosition);
+                renderer.domElement.addEventListener('mousemove', updatePosition);
             });
         }
 
+        function showDetail(name) {
+            const detail = componentDetails[name];
+            document.getElementById('detailTitle').textContent = name;
+            document.getElementById('detailCategory').textContent = detail.category;
+            document.getElementById('detailDescription').textContent = detail.description;
+
+            const specsDiv = document.getElementById('detailSpecs');
+            specsDiv.innerHTML = '';
+            for (const [key, value] of Object.entries(detail.specs)) {
+                const item = document.createElement('div');
+                item.className = 'spec-item';
+                item.innerHTML = `<span class="spec-label">${key}</span><span class="spec-value">${value}</span>`;
+                specsDiv.appendChild(item);
+            }
+
+            document.getElementById('detailPanel').classList.add('show');
+        }
+
+        function closeDetail() {
+            document.getElementById('detailPanel').classList.remove('show');
+        }
+
+        function resetView() {
+            camera.position.set(9, 6, 9);
+            camera.lookAt(0, 2, 0);
+        }
+
+        function toggleRotation() {
+            autoRotate = !autoRotate;
+        }
+
+        let mouseDown = false;
+        let startX = 0, startY = 0;
+
         function onMouseDown(e) {
-            isDragging = true;
-            previousMousePosition = { x: e.clientX, y: e.clientY };
+            mouseDown = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            autoRotate = false;
         }
 
         function onMouseMove(e) {
-            if (isDragging) {
-                autoRotate = false;
-                const deltaX = e.clientX - previousMousePosition.x;
-                const deltaY = e.clientY - previousMousePosition.y;
-
-                model.rotation.y += deltaX * 0.01;
-                model.rotation.x += deltaY * 0.01;
-
-                previousMousePosition = { x: e.clientX, y: e.clientY };
-            }
+            if (!mouseDown) return;
+            const deltaX = (e.clientX - startX) * 0.005;
+            const deltaY = (e.clientY - startY) * 0.005;
+            model.rotation.y += deltaX;
+            model.rotation.x += deltaY;
+            startX = e.clientX;
+            startY = e.clientY;
         }
 
-        function onMouseUp() {
-            isDragging = false;
-        }
-
-        function onTouchStart(e) {
-            if (e.touches.length === 1) {
-                previousMousePosition = { 
-                    x: e.touches[0].clientX, 
-                    y: e.touches[0].clientY 
-                };
-            }
-        }
-
-        function onTouchMove(e) {
-            e.preventDefault();
-            if (e.touches.length === 1) {
-                autoRotate = false;
-                const deltaX = e.touches[0].clientX - previousMousePosition.x;
-                const deltaY = e.touches[0].clientY - previousMousePosition.y;
-
-                model.rotation.y += deltaX * 0.01;
-                model.rotation.x += deltaY * 0.01;
-
-                previousMousePosition = { 
-                    x: e.touches[0].clientX, 
-                    y: e.touches[0].clientY 
-                };
-            }
-        }
+        function onMouseUp() { mouseDown = false; }
 
         function onWheel(e) {
-            e.preventDefault();
-            const delta = e.deltaY * 0.015;
-            
-            const currentDistance = camera.position.length();
-            const newDistance = currentDistance + delta;
-            
-            const minDist = 6;
-            const maxDist = 18;
-            const clampedDistance = Math.max(minDist, Math.min(maxDist, newDistance));
-            
-            camera.position.setLength(clampedDistance);
+            const delta = e.deltaY * 0.01;
+            const newZ = camera.position.length() + delta;
+            const minDist = 6, maxDist = 18;
+            camera.position.setLength(Math.max(minDist, Math.min(maxDist, newZ)));
             camera.lookAt(0, 2, 0);
         }
 
@@ -749,28 +609,12 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function resetView() {
-            camera.position.set(9, 6, 9);
-            camera.lookAt(0, 2, 0);
-            model.rotation.set(0, 0, 0);
-            autoRotate = true;
-            closeDetail();
-        }
-
-        function toggleRotation() {
-            autoRotate = !autoRotate;
+            updateLabels();
         }
 
         function animate() {
             requestAnimationFrame(animate);
-
-            if (autoRotate) {
-                model.rotation.y += 0.005;
-            }
-
-            updateLabels();
+            if (autoRotate) model.rotation.y += 0.005;
             renderer.render(scene, camera);
         }
 
